@@ -10,7 +10,11 @@ const Header: React.FC = () => {
         <Link href="/login">
           <span className="mr-4"> Login </span>
         </Link>
-        <button className="bg-blue-500 px-4 py-2 rounded">Register Now</button>
+        <Link href="/register">
+          <button className="bg-blue-500 px-4 py-2 rounded">
+            Register Now
+          </button>
+        </Link>
       </div>
     </header>
   );

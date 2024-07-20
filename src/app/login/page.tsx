@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
-const Login: React.FC = () => {
+const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +50,17 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="flex items-center justify-between">
+            <div>
+              <input type="checkbox" id="rememberMe" />
+              <label className="ml-2 text-gray-400" htmlFor="rememberMe">
+                Remember me
+              </label>
+            </div>
+            <div>
+              <a href="#">Forgot Password?</a>
+            </div>
+          </div>
             {error && <p className="text-red-500">{error}</p>}
             <button
               type="submit"
@@ -67,4 +78,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

@@ -3,11 +3,14 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -16,10 +19,12 @@ const LoginPage: React.FC = () => {
     // Placeholder for authentication logic
     // You can integrate this with your authentication API
     if (email === 'user@example.com' && password === 'password') {
-      alert('Login successful!');
+      // alert('Login successful!');
     } else {
       setError('Invalid email or password');
     }
+
+    router.push('/userdashboard');
   };
 
   return (

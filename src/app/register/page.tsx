@@ -1,6 +1,12 @@
 "use client";
+
+
 import React, { useState } from "react";
 import Head from "next/head";
+import { auth } from "../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+
+
 
 const Register: React.FC = () => {
   const [name, setName] = useState("");
@@ -12,6 +18,37 @@ const Register: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     // Your registration logic here, e.g., sending data to an API
+    setName("");
+    setLastName("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+
+    // Validate input
+    if (!name ||!lastName ||!username ||!email ||!password) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    // Check if username is already taken
+    // const existingUser = await auth.fetchUserByEmail(email);
+    // if (existingUser) {
+    //   alert("Email already in use. Please choose a different one.");
+    //   return;
+    // }
+
+    // Create a new user with email and password
+    // and handle any errors that occur during the process
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("User created successfully!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error signing up:", error.message);
+      } else {
+        console.error("Error signing up:", error);
+      }
+    }
   };
 
   return (
@@ -29,7 +66,12 @@ const Register: React.FC = () => {
           className="bg-gray-900 p-6 rounded shadow-md w-full max-w-md"
         >
           <div className="mb-4">
-            <label className="block text-left mb-2 text-gray-400" htmlFor="name">Name</label>
+            <label
+              className="block text-left mb-2 text-gray-400"
+              htmlFor="name"
+            >
+              Name
+            </label>
             <input
               type="text"
               id="name"
@@ -39,7 +81,12 @@ const Register: React.FC = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-left mb-2 text-gray-400" htmlFor="lastname">Lastname</label>
+            <label
+              className="block text-left mb-2 text-gray-400"
+              htmlFor="lastname"
+            >
+              Lastname
+            </label>
             <input
               type="text"
               id="lastname"
@@ -95,12 +142,14 @@ const Register: React.FC = () => {
             />
           </div>
           <p>
-            By registering, you agree to our Terms of Service and Privacy Policy.{" "}
-            <a href="#">Learn more</a>
+            By registering, you agree to our Terms of Service and Privacy
+            Policy. <a href="#">Learn more</a>
           </p>
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full mt-4"
+            disabled={!name ||!lastName ||!username ||!email ||!password}
+            onClick={handleRegister}
           >
             Register
           </button>
@@ -109,7 +158,8 @@ const Register: React.FC = () => {
           </p>
           <div className="text-center mt-8">
             <p className="text-gray-400">
-              Copyright © {new Date().getFullYear()} Linkly. All rights reserved.
+              Copyright © {new Date().getFullYear()} Linkly. All rights
+              reserved.
             </p>
           </div>
         </form>

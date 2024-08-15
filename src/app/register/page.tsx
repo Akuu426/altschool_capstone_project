@@ -1,31 +1,28 @@
 "use client";
 
-
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import Head from "next/head";
-import { auth } from "../firebase";
+import { auth, db } from "@/app/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import {doc, setDoc } from "firebase/firestore";
+import {useRouter} from "next/navigation";
 
-
-
-const Register: React.FC = () => {
+const RegisterForm: React.FC = () => {
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Your registration logic here, e.g., sending data to an API
-    setName("");
-    setLastName("");
-    setUsername("");
-    setEmail("");
-    setPassword("");
-
+    setError(null);
+    
     // Validate input
-    if (!name ||!lastName ||!username ||!email ||!password) {
+    if (!name || !lastName || !username || !email || !password) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -40,14 +37,19 @@ const Register: React.FC = () => {
     // Create a new user with email and password
     // and handle any errors that occur during the process
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("User created successfully!");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Error signing up:", error.message);
-      } else {
-        console.error("Error signing up:", error);
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        name: name,
+        lastName: lastName,
+        username: username,
+        email: email,
+        uid: user.uid,
+      });
+      router.push("/userdashboard");
+    } catch (error: any) {
+      setError(error.message);
     }
   };
 
@@ -70,7 +72,7 @@ const Register: React.FC = () => {
               className="block text-left mb-2 text-gray-400"
               htmlFor="name"
             >
-              Name
+              First Name
             </label>
             <input
               type="text"
@@ -85,7 +87,7 @@ const Register: React.FC = () => {
               className="block text-left mb-2 text-gray-400"
               htmlFor="lastname"
             >
-              Lastname
+              Last Name
             </label>
             <input
               type="text"
@@ -148,8 +150,7 @@ const Register: React.FC = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full mt-4"
-            disabled={!name ||!lastName ||!username ||!email ||!password}
-            onClick={handleRegister}
+            disabled={!name || !lastName || !username || !email || !password}
           >
             Register
           </button>
@@ -168,4 +169,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default RegisterForm;

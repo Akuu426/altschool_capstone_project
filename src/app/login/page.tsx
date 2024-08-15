@@ -1,6 +1,6 @@
 import LoginForm from "../ui/login-form";
 
-function loginPage() {
+function LoginPage() {
   return (
     <main>
       <LoginForm />
@@ -8,4 +8,4 @@ function loginPage() {
   );
 }
 
-export default loginPage;
+export default LoginPage;

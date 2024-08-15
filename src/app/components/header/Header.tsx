@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const Header: React.FC = () => {
   return (
-    <header className="flex justify-between items-center p-4 bg-gray-900 text-white">
+    <header className="flex justify-between fixed top-0 left-0 right-0 z-50 items-center p-4 bg-gray-900 text-white">
       <h1 className="text-2xl font-bold"><Link href='/'>Linkly</Link></h1>
       <div>
         {/* <button className="mr-4">Login</button> */}

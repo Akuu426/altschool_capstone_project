@@ -1,13 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
 import Shorten from "../components/shorten/shorten";
 import QRCode from "qrcode.react";
 import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import Footer from "../components/footer/page";
+import UserDashboardHeader from "../components/userdashboardheader/header";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/app/firebase";
 
 interface ShortenedLink {
+  
   shortLink: string;
   originalLink: string;
   qrCode: string;
@@ -16,16 +28,79 @@ interface ShortenedLink {
   date: string;
 }
 
-const UserDashboard = () => {
-  const [shortenedLinks, setShortenedLinks] = useState<ShortenedLink[]>([]);
+interface ShortenedLinkWithId extends ShortenedLink {
+  id: string;
+}
 
-  // Handler to add a new shortened link to the list
-  const addShortenedLink = (newLink: ShortenedLink) => {
-    setShortenedLinks((prevLinks) => [...prevLinks, newLink]);
+const UserDashboard = () => {
+  const [shortenedLinks, setShortenedLinks] = useState<ShortenedLinkWithId[]>(
+    []
+  );
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Listen for changes in the user's authentication state
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Set userName and userId
+        setUserName(user.displayName || user.email);
+        setUserId(user.uid);
+
+        // Fetch links specific to the logged-in user
+        fetchLinks(user.uid);
+      } else {
+        // Handle user not being logged in (optional)
+        setUserName(null);
+        setUserId(null);
+        setShortenedLinks([]); // Clear links if user is not logged in
+      }
+    });
+
+    // Cleanup subscription on component unmount
+    return () => unsubscribe();
+  }, []);
+
+  const fetchLinks = async (userId: string) => {
+    // Query the sub-collection for the authenticated user's links
+    const userLinksCollectionRef = collection(db, "users", userId, "links");
+    const querySnapshot = await getDocs(userLinksCollectionRef);
+    const linksData = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        shortLink: data.shortLink,
+        originalLink: data.originalLink,
+        qrCode: data.qrCode,
+        clicks: data.clicks,
+        status: data.status,
+        date: data.date.toDate().toLocaleString(),
+      } as ShortenedLinkWithId;
+    });
+    setShortenedLinks(linksData);
   };
 
-  // Handler to simulate clicking a link
-  const handleLinkClick = (index: number) => {
+  if (userName === null) {
+    return <p>Loading...</p>; // Optionally, show a loading state while fetching the username
+  }
+
+  // Handler to add a new shortened link to the list
+  const addShortenedLink = async (newLink: ShortenedLink) => {
+    if (!userId) return;
+
+    const userLinksCollectionRef = collection(db, "users", userId, "links");
+    const docRef = await addDoc(userLinksCollectionRef, newLink);
+    setShortenedLinks((prevLinks) => [
+      ...prevLinks,
+      { ...newLink, id: docRef.id },
+    ]);
+  };
+
+  // Handler to update clicking a link
+  const handleLinkClick = async (index: number) => {
+    const link = shortenedLinks[index];
+    const linkDocRef = doc(db, "users", userId!, "links", link.id!);
+    await updateDoc(linkDocRef, { clicks: link.clicks + 1 });
     setShortenedLinks((prevLinks) =>
       prevLinks.map((link, i) =>
         i === index ? { ...link, clicks: link.clicks + 1 } : link
@@ -34,45 +109,30 @@ const UserDashboard = () => {
   };
 
   // Handler to delete a link
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
+    const link = shortenedLinks[index];
+    const linkDocRef = doc(db, "users", userId!, "links", link.id!);
+    await deleteDoc(linkDocRef);
     setShortenedLinks((prevLinks) => prevLinks.filter((_, i) => i !== index));
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-gray-800 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4">
-          <h1 className="text-xl font-bold">
-            <Link href="/">Linkly</Link>
-          </h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-300">Welcome, Mohammed</span>
-            <select>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="all">All</option>
-            </select>
-            <button className="relative">
-              <span className="absolute right-0 top-0 w-3 h-3 bg-red-600 rounded-full" />
-              <span className="material-icons">notifications</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <UserDashboardHeader userName={userName} />
 
       {/* Main Content */}
-      <main className="flex flex-col">
+      <main className="flex flex-col mt-16 pt-5">
         <Shorten addShortenedLink={addShortenedLink} />
 
         {/* Sidebar */}
         <aside className="bg-gray-800 m-5 h-10 pt-2 pl-20">
-          <nav className="flex space-x-10 h-5">
+          <div className="flex space-x-10 h-5">
             <button className="w-full text-left">History</button>
             <button className="w-full text-left">Statistics</button>
             <button className="w-full text-left">Click Stream</button>
-            <button className="w-full text-left">Settings</button>
-          </nav>
+            {/* <button className="w-full text-left">Settings</button> */}
+          </div>
         </aside>
 
         {/* Links Table */}
@@ -141,7 +201,7 @@ const UserDashboard = () => {
         </section>
       </main>
 
-      <Footer/>
+      <Footer />
     </div>
   );
 };

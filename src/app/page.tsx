@@ -16,10 +16,12 @@ const Home: NextPage = () => {
         <meta name="description" content="Linkly - Efficient and easy-to-use URL shortening service" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <div >
       <Header />
       <Main />
       {/* <RoundedDivs/> */}
       <Footer />
+      </div>
       </div>
     </main>
   );

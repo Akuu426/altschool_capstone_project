@@ -3,7 +3,7 @@
 import React, { useId, useState } from "react";
 import Head from "next/head";
 import { auth, db } from "@/app/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import {doc, setDoc } from "firebase/firestore";
 import {useRouter} from "next/navigation";
 
@@ -16,6 +16,7 @@ const RegisterForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
+  const auth = getAuth();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +48,7 @@ const RegisterForm: React.FC = () => {
         email: email,
         uid: user.uid,
       });
+      await sendEmailVerification(user);
       router.push("/userdashboard");
     } catch (error: any) {
       setError(error.message);

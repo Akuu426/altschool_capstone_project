@@ -26,7 +26,7 @@ const UserDashboardHeader: React.FC<{ userName: string }> = ({ userName }) => {
     <header className="bg-gray-800 py-6 fixed top-0 left-0 right-0 z-50">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-4">
         <h1 className="text-xl font-bold">
-          <Link href="/">Linkly</Link>
+          <Link href="/userdashboard">Linkly</Link>
         </h1>
         <div className="flex items-center space-x-6">
           {/* Dropdown Menu for User Profile and Logout */}

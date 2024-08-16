@@ -6,6 +6,7 @@ import QRCode from "qrcode.react";
 import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import Footer from "../components/footer/page";
 import UserDashboardHeader from "../components/userdashboardheader/header";
+import { Timestamp } from "firebase/firestore";
 import {
   collection,
   addDoc,
@@ -17,6 +18,7 @@ import {
 import { db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase";
+import { handleEdit, handleDelete } from "@/app/lib/linkActions";
 
 interface ShortenedLink {
   
@@ -50,7 +52,7 @@ const UserDashboard = () => {
         // Fetch links specific to the logged-in user
         fetchLinks(user.uid);
       } else {
-        // Handle user not being logged in (optional)
+        // Handle user not being logged in
         setUserName(null);
         setUserId(null);
         setShortenedLinks([]); // Clear links if user is not logged in
@@ -62,7 +64,8 @@ const UserDashboard = () => {
   }, []);
 
   const fetchLinks = async (userId: string) => {
-    // Query the sub-collection for the authenticated user's links
+  try {
+    // query for authenticated users links
     const userLinksCollectionRef = collection(db, "users", userId, "links");
     const querySnapshot = await getDocs(userLinksCollectionRef);
     const linksData = querySnapshot.docs.map((doc) => {
@@ -74,14 +77,17 @@ const UserDashboard = () => {
         qrCode: data.qrCode,
         clicks: data.clicks,
         status: data.status,
-        date: data.date.toDate().toLocaleString(),
+        date: data.date instanceof Timestamp ? data.date.toDate().toLocaleString() : data.date,
       } as ShortenedLinkWithId;
     });
     setShortenedLinks(linksData);
-  };
+  } catch (error) {
+    console.error("Error fetching links: ", error);
+  }
+};
 
   if (userName === null) {
-    return <p>Loading...</p>; // Optionally, show a loading state while fetching the username
+    return <p>Loading...</p>; // loading state while fetching the username
   }
 
   // Handler to add a new shortened link to the list
@@ -109,12 +115,12 @@ const UserDashboard = () => {
   };
 
   // Handler to delete a link
-  const handleDelete = async (index: number) => {
-    const link = shortenedLinks[index];
-    const linkDocRef = doc(db, "users", userId!, "links", link.id!);
-    await deleteDoc(linkDocRef);
-    setShortenedLinks((prevLinks) => prevLinks.filter((_, i) => i !== index));
-  };
+  // const handleDelete = async (index: number) => {
+  //   const link = shortenedLinks[index];
+  //   const linkDocRef = doc(db, "users", userId!, "links", link.id!);
+  //   await deleteDoc(linkDocRef);
+  //   setShortenedLinks((prevLinks) => prevLinks.filter((_, i) => i !== index));
+  // };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -184,12 +190,14 @@ const UserDashboard = () => {
                   </td>
                   <td className="py-2 px-4">{link.date}</td>
                   <td className="py-2 px-4 flex space-x-2">
-                    <button className="bg-gray-600 hover:bg-gray-700 p-2 rounded">
+                    <button className="bg-gray-600 hover:bg-gray-700 p-2 rounded"
+                    onClick={() => handleEdit({ link, userId, index, shortenedLinks, setShortenedLinks })}
+                    >
                       <PencilIcon className="w-5 h-5 cursor-pointer text-white hover:text-white-700" />
                     </button>
                     <button
                       className="bg-gray-600 hover:bg-gray-700 p-2 rounded"
-                      onClick={() => handleDelete(index)}
+                      onClick={() => handleDelete({ link, userId, index, shortenedLinks, setShortenedLinks })}
                     >
                       <TrashIcon className="w-5 h-5 cursor-pointer text-white hover:text-red-700" />
                     </button>

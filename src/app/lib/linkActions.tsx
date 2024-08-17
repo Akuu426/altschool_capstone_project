@@ -18,9 +18,9 @@ export const handleEdit = async ({
   setShortenedLinks,
 }: LinkActionsProps) => {
   const linkDocRef = doc(db, "users", userId ?? 'defaultUserId', "links", link.id!);
-  await updateDoc(linkDocRef, { /*...fields to update*/ });
+  await updateDoc(linkDocRef, {  });
   setShortenedLinks((prevLinks) =>
-    prevLinks.map((link, i) => (i === index ? { ...link, /*...updated fields*/ } : link))
+    prevLinks.map((link, i) => (i === index ? { ...link,  } : link))
   );
 };
 

@@ -7,6 +7,10 @@ The project builds user interface for users to e able to shorten and customize l
 
 The project also provides analytics support for users to be able to track their shortened url for information purposes and business decisions.
 
+The project is built with typescript to ensure type compatibility  with existing libraries and libraries that are not part of the public domain.
+
+The project also uses tailwind css for designing.
+
 The project uses Firebase on the backend to collect users information and provide authentication and authorization for registered users. 
 
 First, run the development server:
